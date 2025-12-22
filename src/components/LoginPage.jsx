@@ -1,6 +1,6 @@
 import { api } from '../utils/api';
 
-export default function LoginPage({ user }) {
+export default function LoginPage({ user, onLogout }) {
 	const handleLogin = () => {
 		window.location.href = api.getLoginUrl();
 	};
@@ -18,10 +18,13 @@ export default function LoginPage({ user }) {
 						<p className="text-muted mb-md">
 							Hai <strong>{user.name}</strong>!
 						</p>
-						<p className="text-muted text-sm">
+						<p className="text-muted text-sm mb-lg">
 							Akun kamu tidak memiliki akses admin Photobooth.<br />
 							Hubungi super admin untuk mendapatkan akses.
 						</p>
+						<button onClick={onLogout} className="btn btn-secondary w-full">
+							Logout & Ganti Akun
+						</button>
 					</div>
 				) : (
 					<>

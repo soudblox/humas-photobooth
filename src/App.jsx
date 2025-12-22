@@ -118,7 +118,7 @@ function App() {
 					element={
 						user?.roles?.photoboothAdmin || user?.roles?.superAdmin
 							? <Navigate to="/dashboard" replace />
-							: <LoginPage user={user} />
+							: <LoginPage user={user} onLogout={handleLogout} />
 					}
 				/>
 				<Route path="/auth/callback" element={<AuthCallback />} />
