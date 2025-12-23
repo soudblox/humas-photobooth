@@ -22,7 +22,7 @@ function ProtectedRoute({ children, user, requiredRole }) {
 		return <Navigate to="/" replace />;
 	}
 
-	if (requiredRole === 'admin' && !user.roles.photoboothAdmin && !user.roles.superAdmin) {
+	if (requiredRole === 'admin' && !user.roles.admin && !user.roles.superAdmin) {
 		return <Navigate to="/" replace />;
 	}
 
@@ -60,7 +60,7 @@ function App() {
 				setUser(user);
 
 				// Check if user has admin access
-				if (user.roles.photoboothAdmin || user.roles.superAdmin) {
+				if (user.roles.admin || user.roles.superAdmin) {
 					connect();
 					const data = await api.getQueue();
 					setQueue(data.queue);
@@ -116,7 +116,7 @@ function App() {
 				<Route
 					path="/"
 					element={
-						user?.roles?.photoboothAdmin || user?.roles?.superAdmin
+						user?.roles?.admin || user?.roles?.superAdmin
 							? <Navigate to="/dashboard" replace />
 							: <LoginPage user={user} onLogout={handleLogout} />
 					}
