@@ -2,6 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../utils/api';
 
+// Helper to extract nomor induk from email
+function emailToNomorInduk(email) {
+	if (!email) return null;
+	const match = email.match(/^u(\d+)@s\.smakstlouis1sby\.sch\.id$/i);
+	return match ? match[1] : email; // Return original if doesn't match pattern
+}
+
 export default function SuperAdminPanel({ user, onLogout, pricing, setPricing }) {
 	const [admins, setAdmins] = useState([]);
 	const [superAdmins, setSuperAdmins] = useState([]);
@@ -11,7 +18,7 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 	const [error, setError] = useState(null);
 	const [success, setSuccess] = useState(null);
 
-	// Form states
+	// Form states - now using nomor induk instead of full email
 	const [newAdmin, setNewAdmin] = useState('');
 	const [newSuperAdmin, setNewSuperAdmin] = useState('');
 	const [bundle2Price, setBundle2Price] = useState(pricing.bundle2);
@@ -55,13 +62,14 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 	};
 
 	const handleAddAdmin = async () => {
-		if (!newAdmin.trim() || !newAdmin.includes('@')) {
-			showError('Email tidak valid');
+		const nomorInduk = newAdmin.trim();
+		if (!nomorInduk || !/^\d+$/.test(nomorInduk)) {
+			showError('Nomor induk harus berupa angka');
 			return;
 		}
 		setSaving(true);
 		try {
-			const updated = [...admins, newAdmin.trim()];
+			const updated = [...admins, nomorInduk];
 			await api.updateAdmins(updated);
 			setAdmins(updated);
 			setNewAdmin('');
@@ -73,11 +81,11 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 		}
 	};
 
-	const handleRemoveAdmin = async (email) => {
-		if (!confirm(`Hapus ${email} dari admin?`)) return;
+	const handleRemoveAdmin = async (nomorInduk) => {
+		if (!confirm(`Hapus ${nomorInduk} dari admin?`)) return;
 		setSaving(true);
 		try {
-			const updated = admins.filter(e => e !== email);
+			const updated = admins.filter(e => e !== nomorInduk);
 			await api.updateAdmins(updated);
 			setAdmins(updated);
 			showSuccess('Admin berhasil dihapus');
@@ -89,13 +97,14 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 	};
 
 	const handleAddSuperAdmin = async () => {
-		if (!newSuperAdmin.trim() || !newSuperAdmin.includes('@')) {
-			showError('Email tidak valid');
+		const nomorInduk = newSuperAdmin.trim();
+		if (!nomorInduk || !/^\d+$/.test(nomorInduk)) {
+			showError('Nomor induk harus berupa angka');
 			return;
 		}
 		setSaving(true);
 		try {
-			const updated = [...superAdmins, newSuperAdmin.trim()];
+			const updated = [...superAdmins, nomorInduk];
 			await api.updateSuperAdmins(updated);
 			setSuperAdmins(updated);
 			setNewSuperAdmin('');
@@ -107,15 +116,16 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 		}
 	};
 
-	const handleRemoveSuperAdmin = async (email) => {
-		if (email === user.email) {
+	const handleRemoveSuperAdmin = async (nomorInduk) => {
+		const currentUserNomorInduk = emailToNomorInduk(user.email);
+		if (nomorInduk === currentUserNomorInduk) {
 			showError('Tidak bisa menghapus diri sendiri dari super admin');
 			return;
 		}
-		if (!confirm(`Hapus ${email} dari super admin?`)) return;
+		if (!confirm(`Hapus ${nomorInduk} dari super admin?`)) return;
 		setSaving(true);
 		try {
-			const updated = superAdmins.filter(e => e !== email);
+			const updated = superAdmins.filter(e => e !== nomorInduk);
 			await api.updateSuperAdmins(updated);
 			setSuperAdmins(updated);
 			showSuccess('Super admin berhasil dihapus');
@@ -202,6 +212,9 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 			minimumFractionDigits: 0,
 		}).format(price);
 	};
+
+	// Get current user's nomor induk for comparison
+	const currentUserNomorInduk = emailToNomorInduk(user.email);
 
 	if (loading) {
 		return (
@@ -332,17 +345,18 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 					{/* Admins Card */}
 					<div className="card">
 						<div className="card-header">
-							<h3 className="card-title">👤 Admin Photobooth</h3>
+							<h3 className="card-title">👤 Admin</h3>
+							<p className="text-sm text-muted">Berlaku untuk Photobooth & Puyer</p>
 						</div>
 						<div className="email-list mb-md">
 							{admins.length === 0 ? (
 								<p className="text-sm text-muted">Belum ada admin</p>
 							) : (
-								admins.map(email => (
-									<div key={email} className="email-item">
-										<span className="email-text">{email}</span>
+								admins.map(nomorInduk => (
+									<div key={nomorInduk} className="email-item">
+										<span className="email-text">{nomorInduk}</span>
 										<button
-											onClick={() => handleRemoveAdmin(email)}
+											onClick={() => handleRemoveAdmin(nomorInduk)}
 											className="btn btn-ghost btn-sm"
 											disabled={saving}
 										>
@@ -354,11 +368,11 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 						</div>
 						<div className="flex gap-sm">
 							<input
-								type="email"
+								type="text"
 								className="input"
 								value={newAdmin}
 								onChange={(e) => setNewAdmin(e.target.value)}
-								placeholder="email@gmail.com"
+								placeholder="Nomor Induk (cth: 31037)"
 							/>
 							<button
 								onClick={handleAddAdmin}
@@ -376,15 +390,15 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 							<h3 className="card-title">👑 Super Admin</h3>
 						</div>
 						<div className="email-list mb-md">
-							{superAdmins.map(email => (
-								<div key={email} className="email-item">
+							{superAdmins.map(nomorInduk => (
+								<div key={nomorInduk} className="email-item">
 									<span className="email-text">
-										{email} {email === user.email && '(Kamu)'}
+										{nomorInduk} {nomorInduk === currentUserNomorInduk && '(Kamu)'}
 									</span>
 									<button
-										onClick={() => handleRemoveSuperAdmin(email)}
+										onClick={() => handleRemoveSuperAdmin(nomorInduk)}
 										className="btn btn-ghost btn-sm"
-										disabled={saving || email === user.email}
+										disabled={saving || nomorInduk === currentUserNomorInduk}
 									>
 										✕
 									</button>
@@ -393,11 +407,11 @@ export default function SuperAdminPanel({ user, onLogout, pricing, setPricing })
 						</div>
 						<div className="flex gap-sm">
 							<input
-								type="email"
+								type="text"
 								className="input"
 								value={newSuperAdmin}
 								onChange={(e) => setNewSuperAdmin(e.target.value)}
-								placeholder="email@gmail.com"
+								placeholder="Nomor Induk (cth: 31037)"
 							/>
 							<button
 								onClick={handleAddSuperAdmin}
