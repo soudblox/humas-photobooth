@@ -4,15 +4,22 @@ export default function QueueList({
 	onSetPhotographing,
 	onDone,
 	onCancel,
+	onPrinted,
 	loading,
 	formatPrice,
 	activeTab
 }) {
 	if (queue.length === 0) {
+		const emptyMessages = {
+			waiting: 'menunggu',
+			print: 'menunggu print',
+			done: 'selesai',
+			cancelled: 'dibatalkan'
+		};
 		return (
 			<div className="queue-empty">
 				<div className="queue-empty-icon">📭</div>
-				<p>Tidak ada antrian {activeTab === 'waiting' ? 'menunggu' : activeTab === 'done' ? 'selesai' : 'dibatalkan'}</p>
+				<p>Tidak ada antrian {emptyMessages[activeTab] || ''}</p>
 			</div>
 		);
 	}
@@ -93,6 +100,15 @@ export default function QueueList({
 									✕
 								</button>
 							</>
+						)}
+						{activeTab === 'print' && entry.status === 'done' && !entry.printed && (
+							<button
+								onClick={() => onPrinted(entry)}
+								className="btn btn-success btn-sm"
+								disabled={loading}
+							>
+								🖨️ Printed
+							</button>
 						)}
 					</div>
 				</div>

@@ -40,6 +40,9 @@ export const api = {
 	cancelQueue: (id) => fetchWithCredentials(`/api/photobooth/queue/${id}/cancel`, {
 		method: 'POST',
 	}),
+	markPrinted: (id) => fetchWithCredentials(`/api/photobooth/queue/${id}/print`, {
+		method: 'POST',
+	}),
 	forceAction: (id, action, paymentMethod) => fetchWithCredentials(`/api/photobooth/queue/${id}/force`, {
 		method: 'POST',
 		body: JSON.stringify({ action, paymentMethod }),

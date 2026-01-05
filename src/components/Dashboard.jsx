@@ -13,7 +13,8 @@ export default function Dashboard({ user, queue, currentlyPhotographing, pricing
 
 	const filteredQueue = queue.filter(entry => {
 		if (activeTab === 'waiting') return entry.status === 'waiting' || entry.status === 'photographing';
-		if (activeTab === 'done') return entry.status === 'done';
+		if (activeTab === 'print') return entry.status === 'done' && !entry.printed;
+		if (activeTab === 'done') return entry.status === 'done' && entry.printed;
 		if (activeTab === 'cancelled') return entry.status === 'cancelled';
 		return true;
 	});
@@ -21,7 +22,8 @@ export default function Dashboard({ user, queue, currentlyPhotographing, pricing
 	const stats = {
 		waiting: queue.filter(e => e.status === 'waiting').length,
 		photographing: queue.filter(e => e.status === 'photographing').length,
-		done: queue.filter(e => e.status === 'done').length,
+		pendingPrint: queue.filter(e => e.status === 'done' && !e.printed).length,
+		done: queue.filter(e => e.status === 'done' && e.printed).length,
 		cancelled: queue.filter(e => e.status === 'cancelled').length,
 		totalRevenue: queue
 			.filter(e => e.status === 'done')
@@ -66,6 +68,17 @@ export default function Dashboard({ user, queue, currentlyPhotographing, pricing
 		setLoading(true);
 		try {
 			await api.cancelQueue(entry.id);
+		} catch (error) {
+			alert('Gagal: ' + error.message);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const handlePrinted = async (entry) => {
+		setLoading(true);
+		try {
+			await api.markPrinted(entry.id);
 		} catch (error) {
 			alert('Gagal: ' + error.message);
 		} finally {
@@ -190,6 +203,12 @@ export default function Dashboard({ user, queue, currentlyPhotographing, pricing
 						Menunggu ({stats.waiting + stats.photographing})
 					</button>
 					<button
+						className={`tab ${activeTab === 'print' ? 'active' : ''}`}
+						onClick={() => setActiveTab('print')}
+					>
+						🖨️ Print ({stats.pendingPrint})
+					</button>
+					<button
 						className={`tab ${activeTab === 'done' ? 'active' : ''}`}
 						onClick={() => setActiveTab('done')}
 					>
@@ -210,6 +229,7 @@ export default function Dashboard({ user, queue, currentlyPhotographing, pricing
 					onSetPhotographing={handleSetPhotographing}
 					onDone={handleDone}
 					onCancel={handleCancel}
+					onPrinted={handlePrinted}
 					loading={loading}
 					formatPrice={formatPrice}
 					activeTab={activeTab}
