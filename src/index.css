@@ -805,12 +805,15 @@ h4 {
 }
 
 .payment-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: var(--space-lg);
   background: var(--bg-tertiary);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-xl);
   cursor: pointer;
-  text-align: center;
   transition: all var(--transition-base);
 }
 
@@ -826,6 +829,7 @@ h4 {
 .payment-icon {
   font-size: 2.5rem;
   margin-bottom: var(--space-sm);
+  line-height: 1;
 }
 
 .payment-label {
